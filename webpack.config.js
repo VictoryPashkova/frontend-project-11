@@ -31,8 +31,17 @@ const config = {
         test: /\.scss$/,
         use: [
           'style-loader',
-          'css-loader',
-          'sass-loader',
+          {
+            loader: 'css-loader',
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sassOptions: {
+                quietDeps: true, // Добавляем параметр quietDeps для скрытия предупреждений Sass
+              },
+            },
+          },
         ],
       },
     ],
