@@ -1,11 +1,11 @@
-const render = (path, value, err) => {
+const render = (path, value, err, successMessage) => {
   const input = document.querySelector('.form-control');
   const feedBackParagraf = document.querySelector('.feedback');
   if (path === 'formState') {
     if (value === 'valid') {
       feedBackParagraf.classList.add('text-success');
       feedBackParagraf.classList.remove('text-danger');
-      feedBackParagraf.textContent = 'RSS успешно загружен';
+      feedBackParagraf.textContent = successMessage;
       input.classList.remove('is-invalid');
     } else if (value === 'invalid') {
       input.classList.add('is-invalid');

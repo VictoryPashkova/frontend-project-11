@@ -1,22 +1,35 @@
 import * as yup from 'yup';
 import onChange from 'on-change';
+import i18next from 'i18next';
 import render from './view.js';
+import resources from './locales/index.js';
+
+yup.setLocale({
+  string: {
+    url: () => ({ key: 'errorInvalidUrl' }),
+  },
+  mixed: {
+    notOneOf: () => ({ key: 'errorDoubUrl' }),
+  },
+});
 
 const urlValidation = (url, feeds, valid, invalid) => {
-  const urlSchema = yup.string().url('Ссылка должна быть валидным URL').notOneOf(feeds, 'RSS уже существует');
+  const urlSchema = yup.string().url().notOneOf(feeds);
   return urlSchema.validate(url)
     .then(() => valid())
-    .catch((error) => invalid(error.message));
+    .catch((error) => {
+      invalid(error.errors[0]);
+    });
 };
 
-const app = () => {
+const app = (i18n) => {
   const state = {
     formState: '',
     formData: {
       inputLink: '',
       formFeeds: [],
     },
-    errors: [],
+    errorsKeys: [],
     processState: 'filling',
   };
 
@@ -24,8 +37,10 @@ const app = () => {
   const input = document.querySelector('.form-control');
 
   const watchedState = onChange(state, (path, value) => {
-    const err = watchedState.errors[0];
-    render(path, value, err);
+    const errKey = watchedState.errorsKeys[0];
+    const errMessage = i18n.t(errKey);
+    const successMessage = i18n.t('successLoadedRSS');
+    render(path, value, errMessage, successMessage);
   });
 
   form.addEventListener('submit', (e) => {
@@ -35,7 +50,7 @@ const app = () => {
     const inputData = formData.get('url');
     watchedState.formData.inputLink = inputData;
     const feeds = watchedState.formData.formFeeds;
-    watchedState.errors = [];
+    watchedState.errorsKeys = [];
     urlValidation(
       inputData,
       feeds,
@@ -46,7 +61,7 @@ const app = () => {
         input.focus();
       },
       (err) => {
-        watchedState.errors.push(err);
+        watchedState.errorsKeys.push(err.key);
         watchedState.formState = 'invalid';
         form.reset();
         input.focus();
@@ -55,4 +70,20 @@ const app = () => {
   });
 };
 
-export default app;
+const runApp = () => {
+  const i18n = i18next.createInstance({
+    lng: 'ru',
+    resources,
+  });
+
+  i18n
+    .init()
+    .then(() => {
+      app(i18n);
+    })
+    .catch((error) => {
+      console.error('Ошибка инициализации i18n:', error);
+    });
+};
+
+export default runApp;
