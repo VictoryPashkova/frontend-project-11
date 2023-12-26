@@ -77,8 +77,7 @@ const app = (i18n, state) => {
       }
   });
 
-  const updatePostList = () => {
-    state.formData.formFeeds.forEach((url) => {
+  const updateFeeds = (url) => {
         const proxyUrl = getProxingRequest(url);
         axios.get(proxyUrl)
         .then((response) => {
@@ -103,7 +102,10 @@ const app = (i18n, state) => {
                 return;
             }
         })
-    })
+        .finally(() => {
+            const timeInterval = 5000;
+            setTimeout(() => updateFeeds(url), timeInterval);
+          });
   };
 
   watchedState.processState = 'initial';
@@ -133,8 +135,7 @@ const app = (i18n, state) => {
             const postsList = createPostList(posts, feedId);
             watchedState.feedsList.push({feedId, titelFeedText, descriptionFeedText});
             watchedState.postsList = [...postsList, ...state.postsList];
-            const updateInterval = 10000;
-            setInterval(updatePostList, updateInterval);
+            updateFeeds(inputData);
         })
         .catch((err) => {
             if (err.request) {
