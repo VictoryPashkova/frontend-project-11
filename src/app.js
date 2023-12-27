@@ -48,22 +48,16 @@ const app = (i18n, state) => {
   const watchedState = onChange(state, (path, value) => {
     if (path === 'formState') {
       if (value === 'valid') {
-        const successMessage = i18n.t('successLoadedRSS');
-        renderIsValid(successMessage);
+        renderIsValid(i18n.t('successLoadedRSS'));
       } else if (value === 'invalid') {
-        const errKey = watchedState.errorsKeys[0];
-        const errMessage = i18n.t(errKey);
-        renderNotValid(errMessage);
+        renderNotValid(i18n.t(watchedState.errorsKeys[0]));
       }
     }
     if (path === 'feedsList') {
-      const feedTitle = i18n.t('feedTitle');
-      renderFeedsList(value, feedTitle);
+      renderFeedsList(value, i18n.t('feedTitle'));
     }
     if (path === 'postsList') {
-      const viewButtonText = i18n.t('viewButtonText');
-      const postTitle = i18n.t('postTitle');
-      renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
+      renderPostsList(value, i18n.t('postTitle'), i18n.t('viewButtonText'), state.uiState.watchedPostsId);
     }
     if (path === 'processState') {
       if (value === 'initial') {
@@ -72,17 +66,14 @@ const app = (i18n, state) => {
     }
     if (path === 'networkErr') {
       if (value === 'networkErr') {
-        const message = i18n.t(value);
-        renderNetworkErr(message);
+        renderNetworkErr(i18n.t(value));
       } else if (value === 'RSSerr') {
-        const message = i18n.t(value);
-        renderNetworkErr(message);
+        renderNetworkErr(i18n.t(value));
       }
     }
     if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
     }
-
     if (path === 'uiState.activeModalPostId') {
       if (value !== null) {
         renderModal(value, state.postsList);
