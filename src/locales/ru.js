@@ -6,7 +6,8 @@ const ru = {
     postTitle: 'Посты',
     feedTitle: 'Фиды',
     viewButtonText: 'Просмотр',
-    networkErr: 'Network Error: invalid RSS',
+    networkErr: 'Ошибка сети',
+    RSSerr: 'Ресурс не содержит валидный RSS',
   },
 };
 export default ru;

@@ -66,7 +66,9 @@ const app = (i18n, state) => {
       renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
     }
     if (path === 'processState') {
-      if (value === 'initial') renderInitial();
+      if (value === 'initial') {
+        renderInitial();
+      }
     }
     if (path === 'networkErr') {
       if (value === 'networkErr') {
