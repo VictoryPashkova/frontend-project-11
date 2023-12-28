@@ -5,7 +5,14 @@ import axios from 'axios';
 import _ from 'lodash';
 import uniqueId from 'lodash/uniqueId.js';
 import {
-  renderIsValid, renderNotValid, renderFeedsList, renderPostsList, renderInitial, renderNetworkErr, renderWatchedPosts, renderModal,
+  renderIsValid,
+  renderIsNotValid,
+  renderFeedsList,
+  renderPostsList,
+  renderInitial,
+  renderNetworkErr,
+  renderWatchedPosts,
+  renderModal,
 } from './view.js';
 import resources from './locales/index.js';
 import { getProxingRequest, getParsedData } from './parser.js';
@@ -19,7 +26,7 @@ yup.setLocale({
   },
 });
 
-const urlValidation = (url, feeds, valid, invalid) => {
+const validateUrl = (url, feeds, valid, invalid) => {
   const urlSchema = yup.string().url().notOneOf(feeds);
   return urlSchema.validate(url)
     .then(() => valid())
@@ -40,21 +47,41 @@ const createPostList = (postsData, feedId = null) => {
   return postsList;
 };
 
+const createFeedsList = (content) => {
+  const feedId = uniqueId();
+  const { titelFeedText, descriptionFeedText } = content;
+  return { feedId, titelFeedText, descriptionFeedText };
+};
+
 const app = (i18n, state) => {
   const form = document.querySelector('.rss-form');
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
 
+  const renderValidation = (value, errKey) => {
+    if (value === 'valid') {
+      const successMessage = i18n.t('successLoadedRSS');
+      renderIsValid(successMessage);
+    } else if (value === 'invalid') {
+      const errMessage = i18n.t(errKey);
+      renderIsNotValid(errMessage);
+    }
+  };
+
+  const renderErr = (value) => {
+    if (value === 'networkErr') {
+      const networMessage = i18n.t(value);
+      renderNetworkErr(networMessage);
+    } else if (value === 'RSSerr') {
+      const rssErrMessage = i18n.t(value);
+      renderNetworkErr(rssErrMessage);
+    }
+  };
+
   const watchedState = onChange(state, (path, value) => {
     if (path === 'formState') {
-      if (value === 'valid') {
-        const successMessage = i18n.t('successLoadedRSS');
-        renderIsValid(successMessage);
-      } else if (value === 'invalid') {
-        const errKey = watchedState.errorsKeys[0];
-        const errMessage = i18n.t(errKey);
-        renderNotValid(errMessage);
-      }
+      const errKey = watchedState.errorsKeys[0];
+      renderValidation(value, errKey);
     }
     if (path === 'feedsList') {
       const feedTitle = i18n.t('feedTitle');
@@ -71,18 +98,11 @@ const app = (i18n, state) => {
       }
     }
     if (path === 'networkErr') {
-      if (value === 'networkErr') {
-        const message = i18n.t(value);
-        renderNetworkErr(message);
-      } else if (value === 'RSSerr') {
-        const message = i18n.t(value);
-        renderNetworkErr(message);
-      }
+      renderErr();
     }
     if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
     }
-
     if (path === 'uiState.activeModalPostId') {
       if (value !== null) {
         renderModal(value, state.postsList);
@@ -90,21 +110,43 @@ const app = (i18n, state) => {
     }
   });
 
+  const resetState = () => {
+    watchedState.errorsKeys = [];
+    watchedState.networkErr = null;
+    watchedState.uiState.activeModalPostId = null;
+    watchedState.formState = '';
+  };
+
+  const updatePostsFeedsState = (feeds, posts) => {
+    watchedState.feedsList.push(feeds);
+    watchedState.postsList = [...posts, ...state.postsList];
+  };
+
+  const updateStateErr = (err) => {
+    watchedState.errorsKeys.push(err);
+    watchedState.formState = 'invalid';
+  };
+
+  const findNewPost = (content) => {
+    const { titelFeedText, posts } = content;
+    const matchedId = watchedState.feedsList
+      .filter((el) => el.titelFeedText === titelFeedText)
+      .map((el) => el.feedId)
+      .join('');
+    const newPostsList = createPostList(posts, matchedId);
+    const newPosts = _.differenceBy(newPostsList, state.postsList, matchedId);
+    return newPosts;
+  };
+
   const updateFeeds = (url) => {
     const proxyUrl = getProxingRequest(url);
     axios.get(proxyUrl)
       .then((response) => {
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
-        const { titelFeedText, posts } = content;
-        const matchedId = watchedState.feedsList
-          .filter((el) => el.titelFeedText === titelFeedText)
-          .map((el) => el.feedId)
-          .join('');
-        const newPostsList = createPostList(posts, matchedId);
-        const findNewPosts = _.differenceBy(newPostsList, state.postsList, matchedId);
-        if (findNewPosts) {
-          findNewPosts.forEach((newPost) => {
+        const newPosts = findNewPost(content);
+        if (newPosts) {
+          newPosts.forEach((newPost) => {
             watchedState.postsList.unshift(newPost);
           });
         }
@@ -124,15 +166,12 @@ const app = (i18n, state) => {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    watchedState.formState = '';
     const formData = new FormData(e.target);
     const inputData = formData.get('url');
     watchedState.formData.inputLink = inputData;
     const feeds = watchedState.formData.formFeeds;
-    watchedState.errorsKeys = [];
-    watchedState.networkErr = null;
-    watchedState.uiState.activeModalPostId = null;
-    urlValidation(
+    resetState();
+    validateUrl(
       inputData,
       feeds,
       () => {
@@ -143,11 +182,9 @@ const app = (i18n, state) => {
           .then((response) => {
             const urlData = response.data.contents;
             const content = getParsedData(urlData);
-            const feedId = uniqueId();
-            const { titelFeedText, descriptionFeedText, posts } = content;
-            const postsList = createPostList(posts, feedId);
-            watchedState.feedsList.push({ feedId, titelFeedText, descriptionFeedText });
-            watchedState.postsList = [...postsList, ...state.postsList];
+            const feedsList = createFeedsList(content);
+            const postsList = createPostList(content.posts, feedsList.feedId);
+            updatePostsFeedsState(feedsList, postsList);
             updateFeeds(inputData);
           })
           .catch((err) => {
@@ -161,8 +198,7 @@ const app = (i18n, state) => {
         input.focus();
       },
       (err) => {
-        watchedState.errorsKeys.push(err.key);
-        watchedState.formState = 'invalid';
+        updateStateErr(err.key);
         form.reset();
         input.focus();
       },

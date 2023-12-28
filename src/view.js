@@ -38,7 +38,7 @@ const renderIsValid = (successMessage) => {
   input.classList.remove('is-invalid');
 };
 
-const renderNotValid = (err) => {
+const renderIsNotValid = (err) => {
   const input = document.querySelector('.form-control');
   const feedBackParagraf = document.querySelector('.feedback');
   input.classList.add('is-invalid');
@@ -69,6 +69,33 @@ const renderFeedsList = (feeds, feedTitle) => {
   });
 };
 
+const createPostItem = (item, watchedPostsId, viewButtonText) => {
+  const [, postLink, postName,, postId] = item;
+  const post = document.createElement('li');
+  post.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
+  const postNameEl = document.createElement('a');
+  postNameEl.setAttribute('href', postLink);
+  postNameEl.classList.add('fw-bold');
+  if (watchedPostsId) {
+    if (watchedPostsId.includes(postId)) {
+      post.classList.remove('fw-bold');
+      postNameEl.classList.add('fw-normal', 'link-secondary');
+    }
+  }
+  postNameEl.setAttribute('data-id', postId);
+  postNameEl.setAttribute('target', '_blank');
+  postNameEl.setAttribute('rel', 'noopener noreferrer');
+  postNameEl.textContent = postName;
+  const postButton = document.createElement('button');
+  postButton.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+  postButton.setAttribute('type', 'button');
+  postButton.setAttribute('data-id', postId);
+  postButton.setAttribute('data-bs-toggle', 'modal');
+  postButton.setAttribute('data-bs-target', '#modal');
+  postButton.textContent = viewButtonText;
+  return ({ post, postNameEl, postButton });
+};
+
 const renderPostsList = (posts, postTitle, viewButtonText, watchedPostsId) => {
   const container = document.querySelector('.posts');
   const titelPosts = container.querySelector('.card-title');
@@ -77,29 +104,11 @@ const renderPostsList = (posts, postTitle, viewButtonText, watchedPostsId) => {
   postsList.innerHTML = '';
 
   posts.forEach((postItem) => {
-    const [id, postLink, postName, postDescription, postId] = postItem;
-    const post = document.createElement('li');
-    post.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
-    const postNameEl = document.createElement('a');
-    postNameEl.setAttribute('href', postLink);
-    postNameEl.classList.add('fw-bold');
-    if (watchedPostsId) {
-      if (watchedPostsId.includes(postId)) {
-        post.classList.remove('fw-bold');
-        postNameEl.classList.add('fw-normal', 'link-secondary');
-      }
-    }
-    postNameEl.setAttribute('data-id', postId);
-    postNameEl.setAttribute('target', '_blank');
-    postNameEl.setAttribute('rel', 'noopener noreferrer');
-    postNameEl.textContent = postName;
-    const postButton = document.createElement('button');
-    postButton.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-    postButton.setAttribute('type', 'button');
-    postButton.setAttribute('data-id', postId);
-    postButton.setAttribute('data-bs-toggle', 'modal');
-    postButton.setAttribute('data-bs-target', '#modal');
-    postButton.textContent = viewButtonText;
+    const {
+      post,
+      postNameEl,
+      postButton,
+    } = createPostItem(postItem, watchedPostsId, viewButtonText);
     post.append(postNameEl);
     post.append(postButton);
     postsList.append(post);
@@ -129,7 +138,7 @@ const renderModal = (id, posts) => {
   const modalPostName = post.textContent;
   const postAtrib = [];
   posts.forEach((item) => {
-    const [id, postLink, postName, postDescription, postId] = item;
+    const [, postLink,, postDescription] = item;
     if (String(item[2]) === String(modalPostName)) {
       postAtrib.push(postDescription, postLink);
     }
@@ -145,5 +154,12 @@ const renderModal = (id, posts) => {
 };
 
 export {
-  renderIsValid, renderNotValid, renderFeedsList, renderPostsList, renderInitial, renderNetworkErr, renderWatchedPosts, renderModal,
+  renderIsValid,
+  renderIsNotValid,
+  renderFeedsList,
+  renderPostsList,
+  renderInitial,
+  renderNetworkErr,
+  renderWatchedPosts,
+  renderModal,
 };
