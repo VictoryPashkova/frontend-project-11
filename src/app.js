@@ -82,28 +82,22 @@ const app = (i18n, state) => {
     if (path === 'formState') {
       const errKey = watchedState.errorsKeys[0];
       renderValidation(value, errKey);
-    }
-    if (path === 'feedsList') {
+    } else if (path === 'feedsList') {
       const feedTitle = i18n.t('feedTitle');
       renderFeedsList(value, feedTitle);
-    }
-    if (path === 'postsList') {
+    } else if (path === 'postsList') {
       const viewButtonText = i18n.t('viewButtonText');
       const postTitle = i18n.t('postTitle');
       renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
-    }
-    if (path === 'processState') {
+    } else if (path === 'processState') {
       if (value === 'initial') {
         renderInitial();
       }
-    }
-    if (path === 'networkErr') {
+    } else if (path === 'networkErr') {
       renderErr(value);
-    }
-    if (path === 'uiState.watchedPostsId') {
+    } else if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
-    }
-    if (path === 'uiState.activeModalPostId') {
+    } else if (path === 'uiState.activeModalPostId') {
       if (value !== null) {
         renderModal(value, state.postsList);
       }
@@ -213,6 +207,23 @@ const app = (i18n, state) => {
   });
 };
 
+const initializeAppState = () => ({
+  formState: '',
+  formData: {
+    inputLink: '',
+    formFeeds: [],
+  },
+  feedsList: [],
+  postsList: [],
+  errorsKeys: [],
+  networkErr: null,
+  processState: 'filling',
+  uiState: {
+    watchedPostsId: [],
+    activeModalPostId: null,
+  },
+});
+
 const runApp = () => {
   const i18n = i18next.createInstance({
     lng: 'ru',
@@ -221,22 +232,7 @@ const runApp = () => {
   i18n
     .init()
     .then(() => {
-      const state = {
-        formState: '',
-        formData: {
-          inputLink: '',
-          formFeeds: [],
-        },
-        feedsList: [],
-        postsList: [],
-        errorsKeys: [],
-        networkErr: null,
-        processState: 'filling',
-        uiState: {
-          watchedPostsId: [],
-          activeModalPostId: null,
-        },
-      };
+      const state = initializeAppState();
       app(i18n, state);
     })
     .catch((error) => {
