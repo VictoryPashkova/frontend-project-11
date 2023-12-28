@@ -98,7 +98,7 @@ const app = (i18n, state) => {
       }
     }
     if (path === 'networkErr') {
-      renderErr();
+      renderErr(value);
     }
     if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
@@ -175,7 +175,6 @@ const app = (i18n, state) => {
       inputData,
       feeds,
       () => {
-        watchedState.formState = 'valid';
         watchedState.formData.formFeeds.push(inputData);
         const url = getProxingRequest(inputData);
         axios.get(url)
@@ -186,6 +185,7 @@ const app = (i18n, state) => {
             const postsList = createPostList(content.posts, feedsList.feedId);
             updatePostsFeedsState(feedsList, postsList);
             updateFeeds(inputData);
+            watchedState.formState = 'valid';
           })
           .catch((err) => {
             if (err.request) {
@@ -218,7 +218,6 @@ const runApp = () => {
     lng: 'ru',
     resources,
   });
-
   i18n
     .init()
     .then(() => {
