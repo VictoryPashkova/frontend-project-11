@@ -1,33 +1,17 @@
-const createInintialFeedsContainer = () => {
-  const feedsListContainer = document.querySelector('.feeds');
-  const genFeedsDiv = document.createElement('div');
-  genFeedsDiv.classList.add('card', 'border-0');
-  const titelFeedsDiv = document.createElement('div');
-  titelFeedsDiv.classList.add('card-body');
-  const titelFeeds = document.createElement('h2');
-  titelFeeds.classList.add('card-title', 'h4');
-  const feedsList = document.createElement('ul');
-  feedsList.classList.add('list-group', 'border-0', 'rounded-0');
-  feedsListContainer.append(genFeedsDiv);
-  genFeedsDiv.append(titelFeedsDiv);
-  genFeedsDiv.append(feedsList);
-  titelFeedsDiv.append(titelFeeds);
-};
-
-const createInintialPostsContainer = () => {
-  const postsContainer = document.querySelector('.posts');
-  const genPostsDiv = document.createElement('div');
-  genPostsDiv.classList.add('card', 'border-0');
-  const titelPostsDiv = document.createElement('div');
-  titelPostsDiv.classList.add('card-body');
-  const titelPosts = document.createElement('h2');
-  titelPosts.classList.add('card-title', 'h4');
-  const postsList = document.createElement('ul');
-  postsList.classList.add('list-group', 'border-0', 'rounded-0');
-  postsContainer.append(genPostsDiv);
-  genPostsDiv.append(titelPostsDiv);
-  titelPostsDiv.append(titelPosts);
-  genPostsDiv.append(postsList);
+const createInitialContainer = (containerClass) => {
+  const container = document.querySelector(containerClass);
+  const genDiv = document.createElement('div');
+  genDiv.classList.add('card', 'border-0');
+  const titleDiv = document.createElement('div');
+  titleDiv.classList.add('card-body');
+  const title = document.createElement('h2');
+  title.classList.add('card-title', 'h4');
+  const list = document.createElement('ul');
+  list.classList.add('list-group', 'border-0', 'rounded-0');
+  container.append(genDiv);
+  genDiv.append(titleDiv);
+  titleDiv.append(title);
+  genDiv.append(list);
 };
 const renderIsValid = (successMessage) => {
   const input = document.querySelector('.form-control');
@@ -116,8 +100,8 @@ const renderPostsList = (posts, postTitle, viewButtonText, watchedPostsId) => {
 };
 
 const renderInitial = () => {
-  createInintialFeedsContainer();
-  createInintialPostsContainer();
+  createInitialContainer('.feeds');
+  createInitialContainer('.posts');
 };
 
 const renderNetworkErr = (err) => {
