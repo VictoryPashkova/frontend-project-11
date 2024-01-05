@@ -1,17 +1,10 @@
-const getProxingRequest = (url) => {
-  const allOriginsHexletUrl = new URL('https://allorigins.hexlet.app/get');
-  allOriginsHexletUrl.searchParams.set('disableCache', 'true');
-  allOriginsHexletUrl.searchParams.set('url', url);
-  return allOriginsHexletUrl.toString();
-};
-
 const getParsedData = (responseData) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(responseData, 'application/xml');
 
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    console.error('Ошибка парсинга:', errorNode);
+    throw new Error('Ошибка парсинга');
   }
   const channel = doc.querySelector('channel');
 
@@ -22,4 +15,4 @@ const getParsedData = (responseData) => {
   return { titelFeedText, descriptionFeedText, posts: { posts } };
 };
 
-export { getProxingRequest, getParsedData };
+export default getParsedData;
