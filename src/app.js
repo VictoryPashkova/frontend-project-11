@@ -3,7 +3,6 @@ import onChange from 'on-change';
 import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
-import uniqueId from 'lodash/uniqueId.js';
 import {
   renderIsValid,
   renderIsNotValid,
@@ -38,7 +37,7 @@ const validateUrl = (url, feeds, valid, invalid) => {
 const createPostList = (postsData, feedId = null) => {
   const postsList = [];
   postsData.posts.forEach((item) => {
-    const postId = uniqueId();
+    const postId = _.uniqueId();
     const postName = item.querySelector('title').textContent;
     const postLink = item.querySelector('link').textContent;
     const postDescription = item.querySelector('description').textContent;
@@ -48,7 +47,7 @@ const createPostList = (postsData, feedId = null) => {
 };
 
 const createFeedsList = (content) => {
-  const feedId = uniqueId();
+  const feedId = _.uniqueId();
   const { titelFeedText, descriptionFeedText } = content;
   return { feedId, titelFeedText, descriptionFeedText };
 };
