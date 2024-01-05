@@ -14,7 +14,14 @@ import {
   renderModal,
 } from './view.js';
 import resources from './locales/index.js';
-import { getProxingRequest, getParsedData } from './parser.js';
+import getParsedData from './parser.js';
+
+const getProxingRequest = (url) => {
+    const allOriginsHexletUrl = new URL('https://allorigins.hexlet.app/get');
+    allOriginsHexletUrl.searchParams.set('disableCache', 'true');
+    allOriginsHexletUrl.searchParams.set('url', url);
+    return allOriginsHexletUrl.toString();
+  };
 
 yup.setLocale({
   string: {
@@ -161,14 +168,13 @@ const app = (i18n, state) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const inputData = formData.get('url');
-    watchedState.formData.inputLink = inputData;
-    const feeds = watchedState.formData.formFeeds;
+    const feeds = state.feedsLinks;
     resetState();
     validateUrl(
       inputData,
       feeds,
       () => {
-        watchedState.formData.formFeeds.push(inputData);
+        feeds.push(inputData);
         const url = getProxingRequest(inputData);
         axios.get(url)
           .then((response) => {
@@ -208,10 +214,7 @@ const app = (i18n, state) => {
 
 const initializeAppState = () => ({
   formState: '',
-  formData: {
-    inputLink: '',
-    formFeeds: [],
-  },
+  feedsLinks: [],
   feedsList: [],
   postsList: [],
   errorsKeys: [],
