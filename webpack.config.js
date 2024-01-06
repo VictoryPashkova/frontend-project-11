@@ -28,22 +28,9 @@ const config = {
         type: 'asset',
       },
       {
-        test: /\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sassOptions: {
-                quietDeps: true, 
-              },
-            },
-          },
-        ],
-      },
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }
     ],
   },
   mode: isProduction ? 'production' : 'development',
