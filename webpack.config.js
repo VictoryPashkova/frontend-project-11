@@ -38,7 +38,7 @@ const config = {
             loader: 'sass-loader',
             options: {
               sassOptions: {
-                quietDeps: true, // Добавляем параметр quietDeps для скрытия предупреждений Sass
+                quietDeps: true, 
               },
             },
           },
