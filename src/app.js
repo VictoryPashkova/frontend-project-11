@@ -17,11 +17,11 @@ import resources from './locales/index.js';
 import getParsedData from './parser.js';
 
 const getProxingRequest = (url) => {
-    const allOriginsHexletUrl = new URL('https://allorigins.hexlet.app/get');
-    allOriginsHexletUrl.searchParams.set('disableCache', 'true');
-    allOriginsHexletUrl.searchParams.set('url', url);
-    return allOriginsHexletUrl.toString();
-  };
+  const allOriginsHexletUrl = new URL('https://allorigins.hexlet.app/get');
+  allOriginsHexletUrl.searchParams.set('disableCache', 'true');
+  allOriginsHexletUrl.searchParams.set('url', url);
+  return allOriginsHexletUrl.toString();
+};
 
 yup.setLocale({
   string: {
