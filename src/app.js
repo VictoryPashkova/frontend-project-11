@@ -72,7 +72,7 @@ const app = (i18n, state) => {
     }
   };
 
-  const renderErr = (value) => {
+  const checkErr = (value) => {
     if (value === 'networkErr') {
       const networMessage = i18n.t(value);
       renderNetworkErr(networMessage);
@@ -94,7 +94,7 @@ const app = (i18n, state) => {
       const postTitle = i18n.t('postTitle');
       renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
     } else if (path === 'loading.error') {
-      renderErr(value);
+      checkErr(value);
     } else if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
     } else if (path === 'uiState.activeModalPostId') {
