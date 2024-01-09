@@ -41,22 +41,20 @@ const validateUrl = (url, feeds, valid, invalid) => {
     });
 };
 
-const createPostList = (postsData, feedId = null) => {
-  const postsList = [];
-  postsData.posts.forEach((item) => {
+const createPostList = (posts, feedId = null) => {
+  const newPostsList = [];
+  posts.posts.forEach((item) => {
     const postId = _.uniqueId();
-    const postName = item.querySelector('title').textContent;
-    const postLink = item.querySelector('link').textContent;
-    const postDescription = item.querySelector('description').textContent;
-    postsList.push([feedId, postLink, postName, postDescription, postId]);
+    item.unshift(feedId);
+    item.push(postId);
+    newPostsList.push(item);
   });
-  return postsList;
+  return newPostsList;
 };
 
-const createFeedsList = (content) => {
+const createFeedsList = (feed) => {
   const feedId = _.uniqueId();
-  const { titelFeedText, descriptionFeedText } = content;
-  return { feedId, titelFeedText, descriptionFeedText };
+  return { feedId, ...feed };
 };
 
 const app = (i18n, state) => {
@@ -64,7 +62,7 @@ const app = (i18n, state) => {
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
 
-  const renderValidation = (value, errKey) => {
+  const checkValidation = (value, errKey) => {
     if (value === 'valid') {
       const successMessage = i18n.t('successLoadedRSS');
       renderIsValid(successMessage);
@@ -85,9 +83,9 @@ const app = (i18n, state) => {
   };
 
   const watchedState = onChange(state, (path, value) => {
-    if (path === 'formState') {
-      const errKey = watchedState.errorsKeys[0];
-      renderValidation(value, errKey);
+    if (path === 'form.formState') {
+      const errKey = watchedState.form.error[0];
+      checkValidation(value, errKey);
     } else if (path === 'feedsList') {
       const feedTitle = i18n.t('feedTitle');
       renderFeedsList(value, feedTitle);
@@ -95,11 +93,7 @@ const app = (i18n, state) => {
       const viewButtonText = i18n.t('viewButtonText');
       const postTitle = i18n.t('postTitle');
       renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
-    } else if (path === 'processState') {
-      if (value === 'initial') {
-        renderInitial();
-      }
-    } else if (path === 'networkErr') {
+    } else if (path === 'loading.error') {
       renderErr(value);
     } else if (path === 'uiState.watchedPostsId') {
       renderWatchedPosts(value);
@@ -111,10 +105,10 @@ const app = (i18n, state) => {
   });
 
   const resetState = () => {
-    watchedState.errorsKeys = [];
-    watchedState.networkErr = null;
+    watchedState.form.error = [];
+    watchedState.loading.error = null;
     watchedState.uiState.activeModalPostId = null;
-    watchedState.formState = '';
+    watchedState.form.formState = 'initial';
   };
 
   const updatePostsFeedsState = (feeds, posts) => {
@@ -122,9 +116,9 @@ const app = (i18n, state) => {
     watchedState.postsList = [...posts, ...state.postsList];
   };
 
-  const updateStateErr = (err) => {
-    watchedState.errorsKeys.push(err);
-    watchedState.formState = 'invalid';
+  const updateFormState = (err) => {
+    watchedState.form.error.push(err);
+    watchedState.form.formState = 'invalid';
   };
 
   const findNewPost = (content) => {
@@ -142,6 +136,7 @@ const app = (i18n, state) => {
     const proxyUrl = getProxingRequest(url);
     axios.get(proxyUrl)
       .then((response) => {
+        watchedState.loading.status = 'processing';
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
         const newPosts = findNewPost(content);
@@ -150,10 +145,12 @@ const app = (i18n, state) => {
             watchedState.postsList.unshift(newPost);
           });
         }
+        watchedState.loading.status = 'processed';
       })
       .catch((err) => {
+        watchedState.loading.status = 'failed';
         if (err.request) {
-          watchedState.networkErr = 'networkErr';
+          watchedState.loading.error = 'networkErr';
         }
       })
       .finally(() => {
@@ -162,42 +159,43 @@ const app = (i18n, state) => {
       });
   };
 
-  watchedState.processState = 'initial';
-
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const inputData = formData.get('url');
-    const feeds = state.feedsLinks;
+    const inputUrl = formData.get('url');
+    const feeds = state.feedsList.map((feed) => feed.feedLink);
     resetState();
     validateUrl(
-      inputData,
+      inputUrl,
       feeds,
       () => {
-        feeds.push(inputData);
-        const url = getProxingRequest(inputData);
+        feeds.push(inputUrl);
+        const url = getProxingRequest(inputUrl);
         axios.get(url)
           .then((response) => {
+            watchedState.loading.status = 'processing';
             const urlData = response.data.contents;
-            const content = getParsedData(urlData);
-            const feedsList = createFeedsList(content);
+            const content = getParsedData(urlData, inputUrl);
+            const feedsList = createFeedsList(content.feed);
             const postsList = createPostList(content.posts, feedsList.feedId);
             updatePostsFeedsState(feedsList, postsList);
-            updateFeeds(inputData);
-            watchedState.formState = 'valid';
+            updateFeeds(inputUrl);
+            watchedState.form.formState = 'valid';
+            watchedState.loading.status = 'processed';
           })
           .catch((err) => {
+            watchedState.loading.status = 'failed';
             if (err.request) {
-              watchedState.networkErr = 'networkErr';
+              watchedState.loading.error = 'networkErr';
               return;
             }
-            watchedState.networkErr = 'RSSerr';
+            watchedState.loading.error = 'RSSerr';
           });
         form.reset();
         input.focus();
       },
       (err) => {
-        updateStateErr(err.key);
+        updateFormState(err.key);
         form.reset();
         input.focus();
       },
@@ -213,13 +211,16 @@ const app = (i18n, state) => {
 };
 
 const initializeAppState = () => ({
-  formState: '',
-  feedsLinks: [],
+  form: {
+    formState: 'initial',
+    error: [],
+  },
   feedsList: [],
   postsList: [],
-  errorsKeys: [],
-  networkErr: null,
-  processState: 'filling',
+  loading: {
+    status: 'waiting',
+    error: null,
+  },
   uiState: {
     watchedPostsId: [],
     activeModalPostId: null,
@@ -236,6 +237,7 @@ const runApp = () => {
     .then(() => {
       const state = initializeAppState();
       app(i18n, state);
+      renderInitial();
     })
     .catch((error) => {
       console.error('Ошибка инициализации i18n:', error);
