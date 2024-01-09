@@ -167,8 +167,7 @@ const app = (i18n, state) => {
         }, timeInterval);
       }).catch((err) => {
         watchedState.loading.status = 'failed';
-        watchedState.loading.error = `Ошибка обновления: ${err}`;
-        throw new Error(err);
+        console.error(err);
       });
   };
 
