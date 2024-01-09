@@ -43,10 +43,10 @@ const renderFeedsList = (feeds, feedTitle) => {
     feedItem.classList.add('list-group-item', 'border-0', 'border-end-0');
     const feedItemTitel = document.createElement('h3');
     feedItemTitel.classList.add('h6', 'm-0');
-    feedItemTitel.textContent = feed.titelFeedText;
+    feedItemTitel.textContent = feed.title;
     const feedItemDescript = document.createElement('p');
     feedItemDescript.classList.add('m-0', 'small', 'text-black-50');
-    feedItemDescript.textContent = feed.descriptionFeedText;
+    feedItemDescript.textContent = feed.description;
     feedItem.append(feedItemTitel);
     feedItem.append(feedItemDescript);
     feedsList.append(feedItem);
