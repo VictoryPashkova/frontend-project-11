@@ -132,9 +132,9 @@ const app = (i18n, state) => {
     return newPosts;
   };
 
-  const updateFeeds = (url) => {
+  const fetchData = (url) => {
     const proxyUrl = getProxingRequest(url);
-    axios.get(proxyUrl)
+    return axios.get(proxyUrl)
       .then((response) => {
         watchedState.loading.status = 'processing';
         const urlData = response.data.contents;
@@ -145,17 +145,30 @@ const app = (i18n, state) => {
             watchedState.postsList.unshift(newPost);
           });
         }
-        watchedState.loading.status = 'processed';
       })
       .catch((err) => {
         watchedState.loading.status = 'failed';
         if (err.request) {
           watchedState.loading.error = 'networkErr';
         }
-      })
-      .finally(() => {
+        console.error(err);
+      });
+  };
+
+  const updateFeeds = (feeds) => {
+    const promises = feeds.map((url) => fetchData(url));
+
+    Promise.all(promises)
+      .then(() => {
+        watchedState.loading.status = 'processed';
         const timeInterval = 5000;
-        setTimeout(() => updateFeeds(url), timeInterval);
+        setTimeout(() => {
+          updateFeeds(feeds);
+        }, timeInterval);
+      }).catch((err) => {
+        watchedState.loading.status = 'failed';
+        watchedState.loading.error = `Ошибка обновления: ${err}`;
+        throw new Error(err);
       });
   };
 
@@ -179,7 +192,7 @@ const app = (i18n, state) => {
             const feedsList = createFeedsList(content.feed);
             const postsList = createPostList(content.posts, feedsList.feedId);
             updatePostsFeedsState(feedsList, postsList);
-            updateFeeds(inputUrl);
+            updateFeeds(feeds);
             watchedState.form.formState = 'valid';
             watchedState.loading.status = 'processed';
           })
