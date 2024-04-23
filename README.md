@@ -13,7 +13,7 @@ RSS Agregator is a service for agregating RSS feeds that helps you to easily rea
 
 
 ### RSS Website Link:
-[Open me](https://frontend-project-11-q0vfc54oc-victorypashkovas-projects.vercel.app)
+[Open me](https://frontend-project-11-git-main-victorypashkovas-projects.vercel.app/)
 
 ## Stack
 
