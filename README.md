@@ -29,4 +29,6 @@ Node.js version - v20.4.0
 
 - _**git clone git@github.com:VictoryPashkova/frontend-project-11.git**_ to copy the repository to your computer
 - _**make install**_ to install all dependencies
+- _**npx webpack serve**_ to run local server
+
 
