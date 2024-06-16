@@ -1,10 +1,10 @@
 const getPosts = (postsData) => {
   const postsInfo = [];
   postsData.forEach((item) => {
-    const postName = item.querySelector('title').textContent;
-    const postLink = item.querySelector('link').textContent;
-    const postDescription = item.querySelector('description').textContent;
-    postsInfo.push([postLink, postName, postDescription]);
+    const name = item.querySelector('title').textContent;
+    const url = item.querySelector('link').textContent;
+    const description = item.querySelector('description').textContent;
+    postsInfo.push({ url, name, description });
   });
   return postsInfo;
 };
@@ -21,8 +21,11 @@ const getParsedData = (responseData, feedLink) => {
 
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    throw new Error(errorNode);
+    const error = new Error(errorNode.textContent);
+    error.isParseError = true;
+    throw error;
   }
+
   const channel = doc.querySelector('channel');
   const titelFeedText = channel.querySelector('title').innerHTML;
   const descriptionFeedText = channel.querySelector('description').innerHTML;
@@ -30,7 +33,7 @@ const getParsedData = (responseData, feedLink) => {
   const feed = getFeeds(titelFeedText, descriptionFeedText, feedLink);
   const posts = getPosts(postsData);
 
-  return { feed, posts: { posts } };
+  return { feed, posts };
 };
 
 export default getParsedData;

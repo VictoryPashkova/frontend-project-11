@@ -42,14 +42,11 @@ const validateUrl = (url, feeds, valid, invalid) => {
 };
 
 const createPostList = (posts, feedId = null) => {
-  const newPostsList = [];
-  posts.posts.forEach((item) => {
+  const postList = posts.map((post) => {
     const postId = _.uniqueId();
-    item.unshift(feedId);
-    item.push(postId);
-    newPostsList.push(item);
+    return { postId, feedId, ...post };
   });
-  return newPostsList;
+  return postList;
 };
 
 const createFeedsList = (feed) => {
@@ -61,6 +58,7 @@ const app = (i18n, state) => {
   const form = document.querySelector('.rss-form');
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
+  const timeInterval = 5000;
 
   const checkValidation = (value, errKey) => {
     if (value === 'valid') {
@@ -83,24 +81,39 @@ const app = (i18n, state) => {
   };
 
   const watchedState = onChange(state, (path, value) => {
-    if (path === 'form.formState') {
-      const errKey = watchedState.form.error[0];
-      checkValidation(value, errKey);
-    } else if (path === 'feedsList') {
-      const feedTitle = i18n.t('feedTitle');
-      renderFeedsList(value, feedTitle);
-    } else if (path === 'postsList') {
-      const viewButtonText = i18n.t('viewButtonText');
-      const postTitle = i18n.t('postTitle');
-      renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
-    } else if (path === 'loading.error') {
-      checkErr(value);
-    } else if (path === 'uiState.watchedPostsId') {
-      renderWatchedPosts(value);
-    } else if (path === 'uiState.activeModalPostId') {
-      if (value !== null) {
-        renderModal(value, state.postsList);
-      }
+    let errKey;
+    let feedTitle;
+    let viewButtonText;
+    let postTitle;
+
+    switch (path) {
+      case 'form.formState':
+        // eslint-disable-next-line prefer-destructuring
+        errKey = watchedState.form.error[0];
+        checkValidation(value, errKey);
+        break;
+      case 'feedsList':
+        feedTitle = i18n.t('feedTitle');
+        renderFeedsList(value, feedTitle);
+        break;
+      case 'postsList':
+        viewButtonText = i18n.t('viewButtonText');
+        postTitle = i18n.t('postTitle');
+        renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
+        break;
+      case 'loading.error':
+        checkErr(value);
+        break;
+      case 'uiState.watchedPostsId':
+        renderWatchedPosts(value);
+        break;
+      case 'uiState.activeModalPostId':
+        if (value !== null) {
+          renderModal(value, state.postsList);
+        }
+        break;
+      default:
+        break;
     }
   });
 
@@ -121,14 +134,24 @@ const app = (i18n, state) => {
     watchedState.form.formState = 'invalid';
   };
 
+  const findNotMatchedPosts = (newPostsList, existingPostsList, matchedId) => {
+    const isUniqueByUrl = (post, postsList) => postsList
+      .every((existingPost) => post.url !== existingPost.url);
+    const newPosts = newPostsList.filter((newPost) => {
+      if (newPost.feedId !== matchedId) {
+        return false;
+      }
+      return isUniqueByUrl(newPost, existingPostsList);
+    });
+    return newPosts;
+  };
+
   const findNewPost = (content) => {
-    const { titelFeedText, posts } = content;
+    const { feed, posts } = content;
     const matchedId = watchedState.feedsList
-      .filter((el) => el.titelFeedText === titelFeedText)
-      .map((el) => el.feedId)
-      .join('');
+      .find((el) => el.title === feed.title)?.feedId ?? null;
     const newPostsList = createPostList(posts, matchedId);
-    const newPosts = _.differenceBy(newPostsList, state.postsList, matchedId);
+    const newPosts = findNotMatchedPosts(newPostsList, state.postsList, matchedId);
     return newPosts;
   };
 
@@ -136,18 +159,12 @@ const app = (i18n, state) => {
     const proxyUrl = getProxingRequest(url);
     return axios.get(proxyUrl)
       .then((response) => {
-        watchedState.loading.status = 'processing';
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
         const newPosts = findNewPost(content);
-        if (newPosts) {
-          newPosts.forEach((newPost) => {
-            watchedState.postsList.unshift(newPost);
-          });
-        }
+        watchedState.postsList.unshift(...(newPosts ?? []));
       })
       .catch((err) => {
-        watchedState.loading.status = 'failed';
         if (err.request) {
           watchedState.loading.error = 'networkErr';
         }
@@ -160,13 +177,10 @@ const app = (i18n, state) => {
 
     Promise.all(promises)
       .then(() => {
-        watchedState.loading.status = 'processed';
-        const timeInterval = 5000;
         setTimeout(() => {
           updateFeeds(feeds);
         }, timeInterval);
       }).catch((err) => {
-        watchedState.loading.status = 'failed';
         console.error(err);
       });
   };
@@ -185,7 +199,6 @@ const app = (i18n, state) => {
         const url = getProxingRequest(inputUrl);
         axios.get(url)
           .then((response) => {
-            watchedState.loading.status = 'processing';
             const urlData = response.data.contents;
             const content = getParsedData(urlData, inputUrl);
             const feedsList = createFeedsList(content.feed);
@@ -193,10 +206,8 @@ const app = (i18n, state) => {
             updatePostsFeedsState(feedsList, postsList);
             updateFeeds(feeds);
             watchedState.form.formState = 'valid';
-            watchedState.loading.status = 'processed';
           })
           .catch((err) => {
-            watchedState.loading.status = 'failed';
             if (err.request) {
               watchedState.loading.error = 'networkErr';
               return;
@@ -230,7 +241,6 @@ const initializeAppState = () => ({
   feedsList: [],
   postsList: [],
   loading: {
-    status: 'waiting',
     error: null,
   },
   uiState: {

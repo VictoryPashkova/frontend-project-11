@@ -54,7 +54,7 @@ const renderFeedsList = (feeds, feedTitle) => {
 };
 
 const createPostItem = (item, watchedPostsId, viewButtonText) => {
-  const [, postLink, postName,, postId] = item;
+  const { url: postLink, name: postName, postId } = item;
   const post = document.createElement('li');
   post.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
   const postNameEl = document.createElement('a');
@@ -118,13 +118,14 @@ const renderWatchedPosts = (ids) => {
 };
 
 const renderModal = (id, posts) => {
+  console.log(posts, id);
   const post = document.querySelector(`[data-id="${id}"]`);
   const modalPostName = post.textContent;
   const postAtrib = [];
   posts.forEach((item) => {
-    const [, postLink,, postDescription] = item;
-    if (String(item[2]) === String(modalPostName)) {
-      postAtrib.push(postDescription, postLink);
+    const { url, description } = item;
+    if (String(item.name) === String(modalPostName)) {
+      postAtrib.push(description, url);
     }
   });
   const [postDescription, postLink] = postAtrib;
