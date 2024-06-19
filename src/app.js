@@ -114,7 +114,7 @@ const app = (i18n, state) => {
     watchedState.form.formState = 'initial';
   };
 
-  const updatePostsFeedsState = (feeds, posts) => {
+  const updatePostsFeedState = (feeds, posts) => {
     watchedState.feedsList.push(feeds);
     watchedState.postsList = [...posts, ...state.postsList];
   };
@@ -213,7 +213,7 @@ const app = (i18n, state) => {
             const content = getParsedData(urlData, inputUrl);
             const feedsList = addIdToFeed(content.feed);
             const postsList = addIdsToPosts(content.posts, feedsList.feedId);
-            updatePostsFeedsState(feedsList, postsList);
+            updatePostsFeedState(feedsList, postsList);
             watchedState.form.formState = 'valid';
           })
           .catch((err) => {
