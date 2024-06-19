@@ -4,8 +4,8 @@ import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
 import {
-  renderIsValid,
-  renderIsNotValid,
+  renderValidationSuccess,
+  renderValidationError,
   renderFeedsList,
   renderPostsList,
   renderInitial,
@@ -16,7 +16,7 @@ import {
 import resources from './locales/index.js';
 import getParsedData from './parser.js';
 
-const getProxingRequest = (url) => {
+const createProxyUrl = (url) => {
   const allOriginsHexletUrl = new URL('https://allorigins.hexlet.app/get');
   allOriginsHexletUrl.searchParams.set('disableCache', 'true');
   allOriginsHexletUrl.searchParams.set('url', url);
@@ -41,7 +41,7 @@ const validateUrl = (url, feeds, valid, invalid) => {
     });
 };
 
-const createPostList = (posts, feedId = null) => {
+const addIdsToPosts = (posts, feedId = null) => {
   const postList = posts.map((post) => {
     const postId = _.uniqueId();
     return { postId, feedId, ...post };
@@ -49,7 +49,7 @@ const createPostList = (posts, feedId = null) => {
   return postList;
 };
 
-const createFeedsList = (feed) => {
+const addIdToFeed = (feed) => {
   const feedId = _.uniqueId();
   return { feedId, ...feed };
 };
@@ -63,14 +63,14 @@ const app = (i18n, state) => {
   const checkValidation = (value, errKey) => {
     if (value === 'valid') {
       const successMessage = i18n.t('successLoadedRSS');
-      renderIsValid(successMessage);
+      renderValidationSuccess(successMessage);
     } else if (value === 'invalid') {
       const errMessage = i18n.t(errKey);
-      renderIsNotValid(errMessage);
+      renderValidationError(errMessage);
     }
   };
 
-  const checkErr = (value) => {
+  const handleError = (value) => {
     if (value === 'networkErr') {
       const networMessage = i18n.t(value);
       renderNetworkErr(networMessage);
@@ -102,7 +102,7 @@ const app = (i18n, state) => {
         renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
         break;
       case 'loading.error':
-        checkErr(value);
+        handleError(value);
         break;
       case 'uiState.watchedPostsId':
         renderWatchedPosts(value);
@@ -137,31 +137,31 @@ const app = (i18n, state) => {
   const findNotMatchedPosts = (newPostsList, existingPostsList, matchedId) => {
     const isUniqueByUrl = (post, postsList) => postsList
       .every((existingPost) => post.url !== existingPost.url);
-    const newPosts = newPostsList.filter((newPost) => {
+    const notMatchedPosts = newPostsList.filter((newPost) => {
       if (newPost.feedId !== matchedId) {
         return false;
       }
       return isUniqueByUrl(newPost, existingPostsList);
     });
-    return newPosts;
+    return notMatchedPosts;
   };
 
-  const findNewPost = (content) => {
+  const findNewPosts = (content) => {
     const { feed, posts } = content;
     const matchedId = watchedState.feedsList
       .find((el) => el.title === feed.title)?.feedId ?? null;
-    const newPostsList = createPostList(posts, matchedId);
+    const newPostsList = addIdsToPosts(posts, matchedId);
     const newPosts = findNotMatchedPosts(newPostsList, state.postsList, matchedId);
     return newPosts;
   };
 
   const fetchData = (url) => {
-    const proxyUrl = getProxingRequest(url);
+    const proxyUrl = createProxyUrl(url);
     return axios.get(proxyUrl)
       .then((response) => {
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
-        const newPosts = findNewPost(content);
+        const newPosts = findNewPosts(content);
         watchedState.postsList.unshift(...(newPosts ?? []));
       })
       .catch((err) => {
@@ -196,13 +196,13 @@ const app = (i18n, state) => {
       feeds,
       () => {
         feeds.push(inputUrl);
-        const url = getProxingRequest(inputUrl);
+        const url = createProxyUrl(inputUrl);
         axios.get(url)
           .then((response) => {
             const urlData = response.data.contents;
             const content = getParsedData(urlData, inputUrl);
-            const feedsList = createFeedsList(content.feed);
-            const postsList = createPostList(content.posts, feedsList.feedId);
+            const feedsList = addIdToFeed(content.feed);
+            const postsList = addIdsToPosts(content.posts, feedsList.feedId);
             updatePostsFeedsState(feedsList, postsList);
             updateFeeds(feeds);
             watchedState.form.formState = 'valid';

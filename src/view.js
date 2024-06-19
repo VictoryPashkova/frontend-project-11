@@ -13,7 +13,7 @@ const createInitialContainer = (containerClass) => {
   titleDiv.append(title);
   genDiv.append(list);
 };
-const renderIsValid = (successMessage) => {
+const renderValidationSuccess = (successMessage) => {
   const input = document.querySelector('.form-control');
   const feedBackParagraf = document.querySelector('.feedback');
   feedBackParagraf.classList.add('text-success');
@@ -22,7 +22,7 @@ const renderIsValid = (successMessage) => {
   input.classList.remove('is-invalid');
 };
 
-const renderIsNotValid = (err) => {
+const renderValidationError = (err) => {
   const input = document.querySelector('.form-control');
   const feedBackParagraf = document.querySelector('.feedback');
   input.classList.add('is-invalid');
@@ -106,6 +106,7 @@ const renderInitial = () => {
 
 const renderNetworkErr = (err) => {
   const feedBackParagraf = document.querySelector('.feedback');
+  feedBackParagraf.classList.add('text-danger');
   feedBackParagraf.textContent = err;
 };
 
@@ -118,7 +119,6 @@ const renderWatchedPosts = (ids) => {
 };
 
 const renderModal = (id, posts) => {
-  console.log(posts, id);
   const post = document.querySelector(`[data-id="${id}"]`);
   const modalPostName = post.textContent;
   const postAtrib = [];
@@ -139,8 +139,8 @@ const renderModal = (id, posts) => {
 };
 
 export {
-  renderIsValid,
-  renderIsNotValid,
+  renderValidationSuccess,
+  renderValidationError,
   renderFeedsList,
   renderPostsList,
   renderInitial,

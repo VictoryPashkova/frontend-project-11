@@ -1,4 +1,4 @@
-const getPosts = (postsData) => {
+const getPostsFromXml = (postsData) => {
   const postsInfo = [];
   postsData.forEach((item) => {
     const name = item.querySelector('title').textContent;
@@ -9,13 +9,13 @@ const getPosts = (postsData) => {
   return postsInfo;
 };
 
-const getFeeds = (titelFeedText, descriptionFeedText, feedLink) => ({
+const createFeed = (titelFeedText, descriptionFeedText, feedLink) => ({
   title: titelFeedText,
   description: descriptionFeedText,
   feedLink,
 });
 
-const getParsedData = (responseData, feedLink) => {
+const parseRssData = (responseData, feedLink) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(responseData, 'application/xml');
 
@@ -30,10 +30,10 @@ const getParsedData = (responseData, feedLink) => {
   const titelFeedText = channel.querySelector('title').innerHTML;
   const descriptionFeedText = channel.querySelector('description').innerHTML;
   const postsData = channel.querySelectorAll('item');
-  const feed = getFeeds(titelFeedText, descriptionFeedText, feedLink);
-  const posts = getPosts(postsData);
+  const feed = createFeed(titelFeedText, descriptionFeedText, feedLink);
+  const posts = getPostsFromXml(postsData);
 
   return { feed, posts };
 };
 
-export default getParsedData;
+export default parseRssData;
