@@ -160,6 +160,8 @@ const app = (i18n, state) => {
       .catch((err) => {
         if (err.request) {
           watchedState.loading.error = 'networkErr';
+        } else {
+          watchedState.loading.error = `Ошибка: ${err.message}`;
         }
         console.error(err);
       });
