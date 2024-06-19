@@ -219,7 +219,7 @@ const app = (i18n, state) => {
             const urlData = response.data.contents;
             const content = getParsedData(urlData, inputUrl);
             const feedsList = addIdToFeed(content.feed);
-            const postsList = addIdsToPosts(content.posts, feedsList.feedId);
+            const postsList = addIdsToPosts(content.posts, state.postsList, feedsList.feedId);
             updatePostsFeedState(feedsList, postsList);
             watchedState.form.formState = 'valid';
           })
@@ -249,9 +249,6 @@ const app = (i18n, state) => {
   modal.addEventListener('show.bs.modal', (e) => {
     const modalBtn = e.relatedTarget;
     const modalPostId = modalBtn.getAttribute('data-id');
-    if (!modalPostId) {
-      return;
-    }
     watchedState.uiState.watchedPostsId.push(modalPostId);
     watchedState.uiState.activeModalPostId = modalPostId;
   });
