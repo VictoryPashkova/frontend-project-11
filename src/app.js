@@ -58,7 +58,7 @@ const app = (i18n, state) => {
   const form = document.querySelector('.rss-form');
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
-  const timeInterval = 5000;
+  const timeInterval = 20000;
 
   const checkValidation = (value, errKey) => {
     if (value === 'valid') {
@@ -155,9 +155,12 @@ const app = (i18n, state) => {
     return newPosts;
   };
 
-  const fetchData = (url) => {
+  const fetchData = (url, CancelToken, source, controller) => {
     const proxyUrl = createProxyUrl(url);
-    return axios.get(proxyUrl)
+    return axios.get(proxyUrl, {
+      cancelToken: source.token,
+      signal: controller.signal,
+    })
       .then((response) => {
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
@@ -172,8 +175,25 @@ const app = (i18n, state) => {
       });
   };
 
+  let controller = null;
+  let source = null;
+
   const updateFeeds = (feeds) => {
-    const promises = feeds.map((url) => fetchData(url));
+    if (controller || source) {
+      controller.abort();
+      source.cancel();
+    }
+
+    controller = new AbortController();
+    const { CancelToken } = axios;
+    source = CancelToken.source();
+
+    const promises = feeds.map((url) => fetchData(
+      url,
+      CancelToken,
+      source,
+      controller,
+    ));
 
     Promise.all(promises)
       .then(() => {
@@ -204,7 +224,6 @@ const app = (i18n, state) => {
             const feedsList = addIdToFeed(content.feed);
             const postsList = addIdsToPosts(content.posts, feedsList.feedId);
             updatePostsFeedsState(feedsList, postsList);
-            updateFeeds(feeds);
             watchedState.form.formState = 'valid';
           })
           .catch((err) => {
@@ -213,6 +232,11 @@ const app = (i18n, state) => {
               return;
             }
             watchedState.loading.error = 'RSSerr';
+          })
+          .finally(() => {
+            setTimeout(() => {
+              updateFeeds(feeds);
+            }, timeInterval);
           });
         form.reset();
         input.focus();
