@@ -81,25 +81,15 @@ const app = (i18n, state) => {
   };
 
   const watchedState = onChange(state, (path, value) => {
-    let errKey;
-    let feedTitle;
-    let viewButtonText;
-    let postTitle;
-
     switch (path) {
       case 'form.formState':
-        // eslint-disable-next-line prefer-destructuring
-        errKey = watchedState.form.error[0];
-        checkValidation(value, errKey);
+        checkValidation(value, watchedState.form.error[0]);
         break;
       case 'feedsList':
-        feedTitle = i18n.t('feedTitle');
-        renderFeedsList(value, feedTitle);
+        renderFeedsList(value, i18n.t('feedTitle'));
         break;
       case 'postsList':
-        viewButtonText = i18n.t('viewButtonText');
-        postTitle = i18n.t('postTitle');
-        renderPostsList(value, postTitle, viewButtonText, state.uiState.watchedPostsId);
+        renderPostsList(value, i18n.t('postTitle'), i18n.t('viewButtonText'), state.uiState.watchedPostsId);
         break;
       case 'loading.error':
         handleError(value);
