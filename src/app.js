@@ -41,10 +41,15 @@ const validateUrl = (url, feeds, valid, invalid) => {
     });
 };
 
-const addIdsToPosts = (posts, feedId = null) => {
+const addIdsToPosts = (posts, postsList, feedId = null) => {
+  const ids = postsList.map((post) => post.postId);
+  let id;
   const postList = posts.map((post) => {
-    const postId = _.uniqueId();
-    return { postId, feedId, ...post };
+    id = _.uniqueId();
+    if (ids.includes(id)) {
+      id = _.uniqueId();
+    }
+    return { postId: id, feedId, ...post };
   });
   return postList;
 };
