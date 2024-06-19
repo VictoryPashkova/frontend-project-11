@@ -249,6 +249,9 @@ const app = (i18n, state) => {
   modal.addEventListener('show.bs.modal', (e) => {
     const modalBtn = e.relatedTarget;
     const modalPostId = modalBtn.getAttribute('data-id');
+    if (!modalPostId) {
+      return;
+    }
     watchedState.uiState.watchedPostsId.push(modalPostId);
     watchedState.uiState.activeModalPostId = modalPostId;
   });
