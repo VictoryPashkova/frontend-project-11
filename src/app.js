@@ -264,8 +264,8 @@ const runApp = () => {
       app(i18n, state);
       renderInitial();
     })
-    .catch((error) => {
-      console.error('Ошибка инициализации i18n:', error);
+    .catch((err) => {
+      console.error(err);
     });
 };
 
