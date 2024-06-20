@@ -1,17 +1,23 @@
 const createInitialContainer = (containerClass) => {
   const container = document.querySelector(containerClass);
+
   const genDiv = document.createElement('div');
   genDiv.classList.add('card', 'border-0');
+
   const titleDiv = document.createElement('div');
   titleDiv.classList.add('card-body');
+
   const title = document.createElement('h2');
   title.classList.add('card-title', 'h4');
+
   const list = document.createElement('ul');
   list.classList.add('list-group', 'border-0', 'rounded-0');
-  container.append(genDiv);
-  genDiv.append(titleDiv);
-  titleDiv.append(title);
-  genDiv.append(list);
+
+  genDiv.appendChild(titleDiv);
+  titleDiv.appendChild(title);
+  genDiv.appendChild(list);
+
+  container.replaceChildren(genDiv);
 };
 const renderValidationSuccess = (successMessage) => {
   const input = document.querySelector('.form-control');
@@ -36,7 +42,9 @@ const renderFeedsList = (feeds, feedTitle) => {
   const titelFeeds = container.querySelector('.card-title');
   const feedsList = container.querySelector('.list-group');
   titelFeeds.textContent = feedTitle;
-  feedsList.innerHTML = '';
+
+  const newList = document.createElement('ul');
+  newList.classList.add('list-group', 'border-0', 'rounded-0');
 
   feeds.forEach((feed) => {
     const feedItem = document.createElement('li');
@@ -49,8 +57,10 @@ const renderFeedsList = (feeds, feedTitle) => {
     feedItemDescript.textContent = feed.description;
     feedItem.append(feedItemTitel);
     feedItem.append(feedItemDescript);
-    feedsList.append(feedItem);
+    newList.append(feedItem);
   });
+
+  feedsList.replaceChildren(newList);
 };
 
 const createPostItem = (item, watchedPostsId, viewButtonText) => {
@@ -85,7 +95,9 @@ const renderPostsList = (posts, postTitle, viewButtonText, watchedPostsId) => {
   const titelPosts = container.querySelector('.card-title');
   const postsList = container.querySelector('.list-group');
   titelPosts.textContent = postTitle;
-  postsList.innerHTML = '';
+
+  const newList = document.createElement('ul');
+  newList.classList.add('list-group');
 
   posts.forEach((postItem) => {
     const {
@@ -95,8 +107,10 @@ const renderPostsList = (posts, postTitle, viewButtonText, watchedPostsId) => {
     } = createPostItem(postItem, watchedPostsId, viewButtonText);
     post.append(postNameEl);
     post.append(postButton);
-    postsList.append(post);
+    newList.append(post);
   });
+
+  postsList.replaceChildren(newList);
 };
 
 const renderInitial = () => {

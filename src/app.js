@@ -63,7 +63,7 @@ const app = (i18n, state) => {
   const form = document.querySelector('.rss-form');
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
-  const timeInterval = 20000;
+  const timeInterval = 5000;
 
   const checkValidation = (value, errKey) => {
     if (value === 'valid') {
