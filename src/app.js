@@ -145,17 +145,14 @@ const app = (i18n, state) => {
     const { feed, posts } = content;
     const matchedId = watchedState.feedsList
       .find((el) => el.title === feed.title)?.feedId ?? null;
-    const newPostsList = addIdsToPosts(posts, matchedId);
+    const newPostsList = addIdsToPosts(posts, state.postsList, matchedId);
     const newPosts = findNotMatchedPosts(newPostsList, state.postsList, matchedId);
     return newPosts;
   };
 
-  const fetchData = (url, CancelToken, source, controller) => {
+  const fetchData = (url) => {
     const proxyUrl = createProxyUrl(url);
-    return axios.get(proxyUrl, {
-      cancelToken: source.token,
-      signal: controller.signal,
-    })
+    return axios.get(proxyUrl)
       .then((response) => {
         const urlData = response.data.contents;
         const content = getParsedData(urlData);
@@ -165,32 +162,13 @@ const app = (i18n, state) => {
       .catch((err) => {
         if (err.request) {
           watchedState.loading.error = 'networkErr';
-        } else {
-          watchedState.loading.error = `Ошибка: ${err.message}`;
         }
         console.error(err);
       });
   };
 
-  let controller = null;
-  let source = null;
-
   const updateFeeds = (feeds) => {
-    if (controller || source) {
-      controller.abort();
-      source.cancel();
-    }
-
-    controller = new AbortController();
-    const { CancelToken } = axios;
-    source = CancelToken.source();
-
-    const promises = feeds.map((url) => fetchData(
-      url,
-      CancelToken,
-      source,
-      controller,
-    ));
+    const promises = feeds.map((url) => fetchData(url));
 
     Promise.all(promises)
       .then(() => {
@@ -229,11 +207,6 @@ const app = (i18n, state) => {
               return;
             }
             watchedState.loading.error = 'RSSerr';
-          })
-          .finally(() => {
-            setTimeout(() => {
-              updateFeeds(feeds);
-            }, timeInterval);
           });
         form.reset();
         input.focus();
@@ -255,6 +228,12 @@ const app = (i18n, state) => {
     watchedState.uiState.watchedPostsId.push(modalPostId);
     watchedState.uiState.activeModalPostId = modalPostId;
   });
+  const runConstantlyFeedsUpdate = () => {
+    setTimeout(() => {
+      updateFeeds(state.feedsList.map((feed) => feed.feedLink));
+    }, timeInterval);
+  };
+  runConstantlyFeedsUpdate();
 };
 
 const initializeAppState = () => ({
