@@ -23,15 +23,6 @@ const createProxyUrl = (url) => {
   return allOriginsHexletUrl.toString();
 };
 
-yup.setLocale({
-  string: {
-    url: () => ({ key: 'errorInvalidUrl' }),
-  },
-  mixed: {
-    notOneOf: () => ({ key: 'errorDoubUrl' }),
-  },
-});
-
 const validateUrl = (url, feeds, valid, invalid) => {
   const urlSchema = yup.string().url().notOneOf(feeds);
   return urlSchema.validate(url)
@@ -252,6 +243,17 @@ const initializeAppState = () => ({
   },
 });
 
+const setYupLocale = () => {
+  yup.setLocale({
+    string: {
+      url: () => ({ key: 'errorInvalidUrl' }),
+    },
+    mixed: {
+      notOneOf: () => ({ key: 'errorDoubUrl' }),
+    },
+  });
+};
+
 const runApp = () => {
   const i18n = i18next.createInstance({
     lng: 'ru',
@@ -263,6 +265,7 @@ const runApp = () => {
       const state = initializeAppState();
       app(i18n, state);
       renderInitial();
+      setYupLocale();
     })
     .catch((err) => {
       console.error(err);
