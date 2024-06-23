@@ -221,7 +221,7 @@ const initializeApp = (i18n, state) => {
   });
   const runConstantlyFeedsUpdate = () => {
     setTimeout(() => {
-      updateFeeds(state.feedsList.map((feed) => feed.feedLink));
+      updateFeeds(watchedState.feedsList.map((feed) => feed.feedLink));
     }, timeInterval);
   };
   runConstantlyFeedsUpdate();
