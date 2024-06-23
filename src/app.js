@@ -50,7 +50,7 @@ const addIdToFeed = (feed) => {
   return { feedId, ...feed };
 };
 
-const app = (i18n, state) => {
+const initializeApp = (i18n, state) => {
   const form = document.querySelector('.rss-form');
   const input = document.querySelector('.form-control');
   const modal = document.getElementById('modal');
@@ -263,7 +263,7 @@ const runApp = () => {
     .init()
     .then(() => {
       const state = initializeAppState();
-      app(i18n, state);
+      initializeApp(i18n, state);
       renderInitial();
       setYupLocale();
     })
