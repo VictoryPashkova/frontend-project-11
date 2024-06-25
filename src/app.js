@@ -164,7 +164,7 @@ const initializeApp = (i18n, state) => {
     Promise.all(promises)
       .then(() => {
         setTimeout(() => {
-          updateFeeds(feeds);
+          updateFeeds(watchedState.feedsList.map((feed) => feed.feedLink));
         }, timeInterval);
       }).catch((err) => {
         console.error(err);
@@ -208,6 +208,14 @@ const initializeApp = (i18n, state) => {
         input.focus();
       },
     );
+
+    const runConstantlyFeedsUpdate = () => {
+      setTimeout(() => {
+        updateFeeds(watchedState.feedsList.map((feed) => feed.feedLink));
+      }, timeInterval);
+    };
+
+    runConstantlyFeedsUpdate();
   });
 
   modal.addEventListener('show.bs.modal', (e) => {
@@ -219,12 +227,6 @@ const initializeApp = (i18n, state) => {
     watchedState.uiState.watchedPostsId.push(modalPostId);
     watchedState.uiState.activeModalPostId = modalPostId;
   });
-  const runConstantlyFeedsUpdate = () => {
-    setTimeout(() => {
-      updateFeeds(watchedState.feedsList.map((feed) => feed.feedLink));
-    }, timeInterval);
-  };
-  runConstantlyFeedsUpdate();
 };
 
 const initializeAppState = () => ({
